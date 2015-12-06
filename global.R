@@ -18,4 +18,5 @@ organ <- colnames(vdsRho)
 diseases <- levels(vdsRdf$disease)
 drugs <- levels(vdsRdf$drug)
 
+showtable <- c("genes","effect","effectSD","freqCounts","freqEvents")
 
