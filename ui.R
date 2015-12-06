@@ -10,24 +10,43 @@ shinyUI(fluidPage(
       sidebarLayout(
         sidebarPanel(
           selectInput("dataset", "Choose a dataset:",
-                      choices =drugs),
+                      choices =drugs,selectize=T,multiple = T,
+                      selected = "16-beta-bromoandrosterone"),
           
           selectInput("disease", "Choose an area:",
-                      choices = diseases)
+                      choices = diseases,selectize=T,multiple=T,
+                      selected = "BRCA"),
+          
+          checkboxGroupInput('show_vars', 'Columns to show:',
+                              showtable, selected = showtable)
+          
           
 
         ),
         
         # Show a plot of the generated distribution
         mainPanel(
-          plotlyOutput("coolPlot")
+          plotlyOutput("coolPlot"),
+          dataTableOutput('mytable')
         )
       )
     ), # End Model 2 Tab Panel
+    
     tabPanel("Model 1", 
-      selectInput("organ", "Choose an area:",
+      titlePanel("Drug Sensitivity"),
+             
+      # Sidebar with a slider input for the number of bins
+      sidebarLayout(
+        sidebarPanel(
+    
+          selectInput("organ", "Choose an area:",
                   choices = organ),
-      checkboxInput("sort", "Sort Rho values", FALSE),
-      plotlyOutput("vfsperf"))
+          checkboxInput("sort", "Sort Rho values", FALSE)
+        ),
+        mainPanel(
+          plotlyOutput("vfsperf")
+        )
+      )
+    )
   )
 ))
