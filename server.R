@@ -37,6 +37,16 @@ shinyServer(function(input, output) {
               yaxis = list(title="Feature Stability"))
       
   })
+  
+  output$mytable = renderDataTable({
+    R = vdsRdf[vdsRdf$drug == input$dataset,]
+    diseaseArea=R[R$disease == input$disease,input$show_vars]
+    
+    #Filter by freqCounts and freqEvents
+    filtered = diseaseArea[diseaseArea$freqCounts > 0.05,]
+    filtered = filtered[filtered$freqEvents > 0.01,]
+    return(filtered)
+  })
 
   
 })
