@@ -6,20 +6,13 @@ shinyServer(function(input, output) {
   #Filters based on performance
   
   output$vfsperf <- renderPlotly({
-   # load(input$dataset)
-    
-    rho <- sapply(list.files("out",full.names = T), function(Robject) {
-      load(Robject)
-      organ=vds$perf[[input$organ]]
-      #organ=vds$perf[["bone"]]
-      
-      return(organ$rho$estimate)
-    }) 
-    
-  
+
+    rho <- vdsRho[[input$organ]]
     rho <- as.data.frame(rho)
-    rho$names = row.names(rho)
-  
+    rho$names = row.names(vdsRho)
+    if (input$sort) 
+      rho <- rho[order(rho$rho),]
+    
     # note how size is automatically scaled and added as hover text
     plot_ly(rho,x=names,y=rho)%>%
       layout(xaxis = list(title="Drug"),
@@ -28,16 +21,14 @@ shinyServer(function(input, output) {
   })
 
   output$coolPlot <- renderPlotly({
-    # filter by freqCounts
-    load(input$dataset)
+
+    R = vdsRdf[vdsRdf$drug == input$dataset,]
+    diseaseArea=R[R$disease == input$disease,]
     
-    diseaseArea=R[[input$disease]]
-    temp <- diseaseArea$df
-    #Filter by freqEvents
-    filtered = temp[temp$freqCounts > 0.05,]
-    # filter by effect magnitude
-    #filtered = temp[temp$effect >0.01]
-    
+    #Filter by freqCounts and freqEvents
+    filtered = diseaseArea[diseaseArea$freqCounts > 0.05,]
+    filtered = filtered[filtered$freqEvents > 0.01,]
+
     # note how size is automatically scaled and added as hover text
     plot_ly(filtered, x = effect, y = freqCounts, 
             text = paste("Molecular Trait: ",genes),
@@ -46,11 +37,7 @@ shinyServer(function(input, output) {
               yaxis = list(title="Feature Stability"))
       
   })
-  
-  output$drug <- renderText({
-    load(input$dataset)
-    paste("Drug:",drug)
-  })
+
   
 })
 
