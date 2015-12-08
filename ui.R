@@ -10,7 +10,7 @@ shinyUI(fluidPage(
       sidebarLayout(
         sidebarPanel(
           selectInput("dataset", "Choose a dataset:",
-                      choices =drugs,selectize=T,multiple = T,
+                      choices =drugs,selectize=T,
                       selected = "16-beta-bromoandrosterone"),
           
           selectInput("disease", "Choose an area:",
@@ -40,7 +40,8 @@ shinyUI(fluidPage(
         sidebarPanel(
     
           selectInput("organ", "Choose an area:",
-                  choices = organ),
+                      selectize=T,multiple=T,
+                  choices = organ,selected="bone"),
           checkboxInput("sort", "Sort Rho values", FALSE)
         ),
         mainPanel(
