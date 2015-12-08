@@ -14,7 +14,7 @@ synapseLogin()
 #row.names(vdsRho) = vdsRho$X
 #vdsRho <- vdsRho[,-1]
 
-organ <- colnames(vdsRho)
+organs <- colnames(vdsRho)
 diseases <- levels(vdsRdf$disease)
 drugs <- levels(vdsRdf$drug)
 

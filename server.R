@@ -7,14 +7,14 @@ shinyServer(function(input, output,session) {
   
   output$vfsperf <- renderPlotly({
 
-    rho <- vdsRho[[input$organ]]
+    rho <- vdsRho[,unlist(input$organ)]
     rho <- as.data.frame(rho)
     rho$names = row.names(vdsRho)
     if (input$sort) 
       rho <- rho[order(rho$rho),]
     
     # note how size is automatically scaled and added as hover text
-    plot_ly(rho,x=names,y=rho,color = organ)%>%
+    plot_ly(rho,x=names,y=rho)%>%
       layout(xaxis = list(title="Drug"),
              yaxis = list(title="Rho"))
     

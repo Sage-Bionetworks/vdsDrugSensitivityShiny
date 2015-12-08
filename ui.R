@@ -40,8 +40,8 @@ shinyUI(fluidPage(
         sidebarPanel(
     
           selectInput("organ", "Choose an area:",
-                      selectize=T,multiple=T,
-                  choices = organ,selected="bone"),
+                      selectize=T,#multiple=T,
+                  choices = organs,selected="bone"),
           checkboxInput("sort", "Sort Rho values", FALSE)
         ),
         mainPanel(
