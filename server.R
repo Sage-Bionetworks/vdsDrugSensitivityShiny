@@ -20,23 +20,32 @@ shinyServer(function(input, output,session) {
     
   })
   
-#### Fix below as when you select multiple drugs/diseases this will fail
-  
+
   output$coolPlot <- renderPlotly({
     withProgress(message = 'Calculation in progress',
                  detail = 'This may take a while...',  value = 0,{
       incProgress(session= session)
       R = vdsRdf[vdsRdf$drug == input$dataset,]
-      diseaseArea=R[R$disease == unlist(input$disease),]
       
-      #Filter by freqCounts and freqEvents
-      filtered = diseaseArea[diseaseArea$freqCounts > 0.05,]
-      filtered = filtered[filtered$freqEvents > 0.01,]
-    
+      #May have multiple diseases, so loop through and gather top 20 freqCounts of each 
+      #disease area
+      data = lapply(input$disease, function(x) {
+        diseaseArea=R[R$disease == x,]
+        filtered = diseaseArea[order(diseaseArea$freqCounts,decreasing = T)[1:20],]
+        return(filtered)
+      })
+      data = do.call(rbind, data)
+      #filtered = diseaseArea[diseaseArea$freqCounts > 0.05,]
+      #filtered = filtered[filtered$freqEvents > 0.01,]
+      
       # note how size is automatically scaled and added as hover text
-      plot_ly(filtered, x = effect, y = freqCounts, 
-              text = paste("Molecular Trait: ",genes),
-              size = freqEvents,color = disease, mode = "markers") %>%
+      plot_ly(data, x = effect, y = freqCounts, 
+              text = paste("Feature Stability: ", freqCounts,
+                           "</br>Molecular Trait: ",genes,"</br>Effect Magnitude: ", effect,
+                           "</br>Disease: ",disease, "</br>Drug: ",drug,
+                           "</br>Event frequency: ", freqEvents),
+              size = freqEvents,color = disease, 
+              mode = "markers") %>%
         layout(xaxis = list(title="Effect Magnitude"),
                 yaxis = list(title="Feature Stability"))
     })
@@ -45,12 +54,18 @@ shinyServer(function(input, output,session) {
   
   output$mytable = renderDataTable({
     R = vdsRdf[vdsRdf$drug == input$dataset,]
-    diseaseArea=R[R$disease == input$disease,input$show_vars]
     
+    data = lapply(input$disease, function(x) {
+      diseaseArea=R[R$disease == x,input$show_vars]
+      filtered = diseaseArea[order(diseaseArea$freqCounts,decreasing = T)[1:20],]
+      return(filtered)
+    })
+    data = do.call(rbind, data)
+
     #Filter by freqCounts and freqEvents
-    filtered = diseaseArea[diseaseArea$freqCounts > 0.05,]
-    filtered = filtered[filtered$freqEvents > 0.01,]
-    return(filtered)
+    #filtered = diseaseArea[diseaseArea$freqCounts > 0.05,]
+    #filtered = filtered[filtered$freqEvents > 0.01,]
+    return(data)
   })
 
   
