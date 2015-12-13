@@ -16,9 +16,11 @@ shinyUI(fluidPage(
           selectInput("disease", "Choose an area:",
                       choices = diseases,selectize=T,multiple=T,
                       selected = "BRCA"),
+          checkboxInput('show_dt', 'Show data values', value = FALSE),
           
-          checkboxGroupInput('show_vars', 'Columns to show:',
-                              showtable, selected = showtable)
+          conditionalPanel("input.show_dt",
+                           checkboxGroupInput('show_vars', 'Columns to show:',
+                              showtable, selected = showtable))
           
           
 
@@ -26,8 +28,8 @@ shinyUI(fluidPage(
         
         # Show a plot of the generated distribution
         mainPanel(
-          plotlyOutput("coolPlot"),
-          dataTableOutput('mytable')
+          conditionalPanel("input.show_dt", dataTableOutput('mytable')),
+          conditionalPanel("!input.show_dt",plotlyOutput("coolPlot"))
         )
       )
     ), # End Model 2 Tab Panel
