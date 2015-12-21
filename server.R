@@ -4,22 +4,56 @@ shinyServer(function(input, output,session) {
   #Multiple drug, one disease
   #Multiple diseases, one drug
   #Filters based on performance
-  
-  output$vfsperf <- renderPlotly({
-
+  vds <- reactive({
     rho <- vdsRho[,unlist(input$organ)]
     rho <- as.data.frame(rho)
     rho$names = row.names(vdsRho)
-    if (input$sort) 
-      rho <- rho[order(rho$rho),]
+    rho <- rho[order(rho$rho),]
+    rho <- rho[rho$rho>=input$threshold,]
+    rho
+  })
+  output$vfsperf <- renderPlotly({
     
+    rho <- vds()
+    
+    #print(head(rho))
     # note how size is automatically scaled and added as hover text
     plot_ly(rho,x=names,y=rho)%>%
       layout(xaxis = list(title="Drug"),
              yaxis = list(title="Rho"))
     
   })
+  observe({
+    updateSelectInput(session, "dataset", label = "Choose a dataset:", choices = vds()$names)
+  })
   
+  output$drugRho <- renderPlotly({
+    withProgress(message = 'Calculation in progress',
+                 detail = 'This may take a while...',  value = 0,{
+      diseaseRho <- drugRho[[input$diseaseArea]]
+      median <- unlist(lapply(diseaseRho, function(x) {
+        values <- unlist(strsplit(x, ","))
+        values <- values[values != "NA"]
+        values <- as.numeric(values)
+        median(values,na.rm = T)
+      }))
+      
+      diseaseRho <- diseaseRho[order(median)]
+      frame = data.frame()
+      for (i in c(1:length(diseaseRho))) {
+        values <- unlist(strsplit(diseaseRho[i], ","))
+        values <- values[values != "NA"]
+        values <- as.numeric(values)
+        temp <- data.frame(drug = row.names(drugRho)[i],values = values)  
+        frame = rbind(frame, temp)
+      }
+      frame <- as.data.frame(frame,stringsAsFactors=F)
+      plot_ly(frame, x=drug, y= values,type = "box") %>%
+        add_trace(y = fitted(loess(values ~ as.numeric(drug)))) %>%
+        layout(yaxis = list(range=c(-0.5,1)))
+    })
+    
+  })
 
   output$coolPlot <- renderPlotly({
     withProgress(message = 'Calculation in progress',

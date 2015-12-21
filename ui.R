@@ -3,6 +3,24 @@ shinyUI(fluidPage(
   
   # Application title
   tabsetPanel(
+    tabPanel("Model 1", 
+             titlePanel("Drug Sensitivity"),
+             
+             # Sidebar with a slider input for the number of bins
+             sidebarLayout(
+               sidebarPanel(
+                 
+                 selectInput("organ", "Choose an area:",
+                             selectize=T,#multiple=T,
+                             choices = organs,selected="bone"),
+                 sliderInput("threshold","Choose a threshold:",value=-1,
+                             min = 0,max=1,step=0.1)
+               ),
+               mainPanel(
+                 plotlyOutput("vfsperf")
+               )
+             )
+    ),#End tabPanel 1
     tabPanel("Model 2",
       titlePanel("Drug Sensitivity"),
       
@@ -10,8 +28,7 @@ shinyUI(fluidPage(
       sidebarLayout(
         sidebarPanel(
           selectInput("dataset", "Choose a dataset:",
-                      choices =drugs,selectize=T,
-                      selected = "16-beta-bromoandrosterone"),
+                      choices =drugs,selectize=T),
           
           selectInput("disease", "Choose an area:",
                       choices = diseases,selectize=T,multiple=T,
@@ -34,22 +51,22 @@ shinyUI(fluidPage(
       )
     ), # End Model 2 Tab Panel
     
-    tabPanel("Model 1", 
-      titlePanel("Drug Sensitivity"),
+
+    tabPanel("Model 3", 
+             titlePanel("Drug Sensitivity"),
              
-      # Sidebar with a slider input for the number of bins
-      sidebarLayout(
-        sidebarPanel(
-    
-          selectInput("organ", "Choose an area:",
-                      selectize=T,#multiple=T,
-                  choices = organs,selected="bone"),
-          checkboxInput("sort", "Sort Rho values", FALSE)
-        ),
-        mainPanel(
-          plotlyOutput("vfsperf")
-        )
-      )
-    )
+             # Sidebar with a slider input for the number of bins
+             sidebarLayout(
+               sidebarPanel(
+                 
+                 selectInput("diseaseArea", "Choose an area:",
+                             selectize=T,#multiple=T,
+                             choices = diseases,selected="BRCA")
+               ),
+               mainPanel(
+                 plotlyOutput("drugRho")
+               )
+             )
+    )#End tabPanel 3
   )
 ))
