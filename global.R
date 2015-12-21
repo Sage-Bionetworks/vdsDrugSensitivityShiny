@@ -11,15 +11,19 @@ synapseLogin()
 #vdsRdf <- read.csv(vdsRdf@filePath,stringsAsFactors = F)
 
 #vdsRho <- read.csv(vdsRho@filePath,stringsAsFactors = F)
+
+#vdsRdf <- read.csv("shortened_vdsRdf.csv",stringsAsFactors = F)
+#vdsRho <- read.csv("vdsRhoEstimates.csv",stringsAsFactors = F)
+#drugRho <- read.csv("RdrugRho.tsv",stringsAsFactors = F,sep="\t")
 #row.names(vdsRho) = vdsRho$X
 #vdsRho <- vdsRho[,-1]
 
 organs <- colnames(vdsRho)
 diseases <- unique(vdsRdf$disease)
 drugs <- unique(vdsRdf$drug)
-#Three significant Digits
-vdsRdf$effect <- signif(vdsRdf$effect,3)
-vdsRdf$freqEvents <- signif(vdsRdf$freqEvents,3)
+drugs <- sort(drugs)
+
+
 showtable <- c("genes","effect",#"effectSD",
                "freqCounts","freqEvents","drug","disease")
 
