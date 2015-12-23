@@ -10,11 +10,9 @@ shinyUI(fluidPage(
              sidebarLayout(
                sidebarPanel(
                  
-                 selectInput("organ", "Choose an area:",
+                 selectInput("organ", "Choose an organ:",
                              selectize=T,#multiple=T,
-                             choices = organs,selected="bone"),
-                 sliderInput("threshold","Choose a threshold:",value=-1,
-                             min = 0,max=1,step=0.1)
+                             choices = organs,selected="bone")
                ),
                mainPanel(
                  plotlyOutput("vfsperf")
@@ -27,17 +25,21 @@ shinyUI(fluidPage(
       # Sidebar with a slider input for the number of bins
       sidebarLayout(
         sidebarPanel(
-          selectInput("dataset", "Choose a dataset:",
+          selectInput("dataset", "Choose a drug:",
                       choices =drugs,selectize=T),
           
-          selectInput("disease", "Choose an area:",
+          selectInput("disease", "Choose a disease:",
                       choices = diseases,selectize=T,multiple=T,
                       selected = "BRCA"),
           checkboxInput('show_dt', 'Show data values', value = FALSE),
           
           conditionalPanel("input.show_dt",
                            checkboxGroupInput('show_vars', 'Columns to show:',
-                              showtable, selected = showtable))
+                              showtable, selected = showtable)),
+          sliderInput("threshold","Choose a threshold Rho value:",value=-1,
+                      min = 0,max=1,step=0.1),
+          sliderInput("thresholdmedian","Choose a threshold median Rho value:",value=-1,
+                      min = 0,max=1,step=0.1)
           
           
 
@@ -60,7 +62,7 @@ shinyUI(fluidPage(
                sidebarPanel(
                  
                  selectInput("diseaseArea", "Choose an area:",
-                             selectize=T,#multiple=T,
+                             selectize=T,multiple=T,
                              choices = diseases,selected="BRCA")
                ),
                mainPanel(
