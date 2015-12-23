@@ -24,33 +24,38 @@ shinyServer(function(input, output,session) {
     
   })
   observe({
-    updateSelectInput(session, "dataset", label = "Choose a dataset:", choices = vds()$names)
+    updateSelectInput(session, "dataset", label = "Choose a drug:", choices = sort(vds()$names))
   })
   
   output$drugRho <- renderPlotly({
     withProgress(message = 'Calculation in progress',
                  detail = 'This may take a while...',  value = 0,{
-      diseaseRho <- drugRho[[input$diseaseArea]]
-      median <- unlist(lapply(diseaseRho, function(x) {
-        values <- unlist(strsplit(x, ","))
-        values <- values[values != "NA"]
-        values <- as.numeric(values)
-        median(values,na.rm = T)
-      }))
-      
-      diseaseRho <- diseaseRho[order(median)]
-      frame = data.frame()
-      for (i in c(1:length(diseaseRho))) {
-        values <- unlist(strsplit(diseaseRho[i], ","))
-        values <- values[values != "NA"]
-        values <- as.numeric(values)
-        temp <- data.frame(drug = row.names(drugRho)[i],values = values)  
-        frame = rbind(frame, temp)
-      }
-      frame <- as.data.frame(frame,stringsAsFactors=F)
-      plot_ly(frame, x=drug, y= values,type = "box") %>%
-        add_trace(y = fitted(loess(values ~ as.numeric(drug)))) %>%
-        layout(yaxis = list(range=c(-0.5,1)))
+      medianValues <- lapply(input$diseaseArea, function(x) {
+        diseaseRho <- drugRho[[x]]
+        medianVal <- unlist(lapply(diseaseRho, function(x) {
+          values <- unlist(strsplit(x, ","))
+          values <- values[values != "NA"]
+          values <- as.numeric(values)
+          median(values,na.rm = T)
+        }))
+        temp <- data.frame(drug = row.names(drugRho), medianVal, disease = x)
+        temp <- temp[order(temp$medianVal),]
+        return(temp)
+      })
+      medianValues <- do.call(rbind,medianValues)
+    
+      #frame = data.frame()
+      #for (i in c(1:length(diseaseRho))) {
+      #  values <- unlist(strsplit(diseaseRho[i], ","))
+      #  values <- values[values != "NA"]
+      #  values <- as.numeric(values)
+      #  temp <- data.frame(drug = row.names(drugRho)[i],values = values)  
+      #  frame = rbind(frame, temp)
+      #}
+      #frame <- as.data.frame(frame,stringsAsFactors=F)
+      plot_ly(medianValues, x=drug, y= medianVal,color=disease) #%>% #,type = "box") %>%
+        #add_trace(y = fitted(loess(values ~ as.numeric(drug))))# %>%
+        #layout(yaxis = list(range=c(-0.5,1)))
     })
     
   })
