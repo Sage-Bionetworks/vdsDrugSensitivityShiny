@@ -4,7 +4,7 @@ shinyUI(fluidPage(
   # Application title
   tabsetPanel(
     tabPanel("Model 1", 
-             titlePanel("Drug Sensitivity"),
+             titlePanel("Cell Line Drug Sensitivity"),
              
              # Sidebar with a slider input for the number of bins
              sidebarLayout(
@@ -53,9 +53,9 @@ shinyUI(fluidPage(
       )
     ), # End Model 2 Tab Panel
     
-
+#Model 3 and Model 1 should be on same page
     tabPanel("Model 3", 
-             titlePanel("Drug Sensitivity"),
+             titlePanel("Disease Performance Drug Sensitivity"),
              
              # Sidebar with a slider input for the number of bins
              sidebarLayout(
