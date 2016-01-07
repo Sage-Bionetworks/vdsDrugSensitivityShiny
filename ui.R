@@ -42,10 +42,11 @@ shinyUI(fluidPage(
         sidebarPanel(
           selectInput("dataset", "Choose a drug:",
                       choices =drugs,selectize=T),
-          
-          selectInput("disease", "Choose a disease:",
-                      choices = diseases,selectize=T,multiple=T,
-                      selected = "BRCA"),
+          h5("Disease area selected:", style="font-weight:700"),
+          textOutput("diseaseAreaOutput"),
+#           selectInput("disease", "Choose a disease:",
+#                       choices = diseases,selectize=T,multiple=T,
+#                       selected = "BRCA"),
           checkboxInput('show_dt', 'Show data values', value = FALSE),
           
           conditionalPanel("input.show_dt",

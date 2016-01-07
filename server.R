@@ -12,13 +12,14 @@ shinyServer(function(input, output,session) {
     rho <- rho[rho$rho>=input$threshold,]
     rho
   })
+  
   output$vfsperf <- renderPlotly({
-    
+  
     rho <- vds()
     
     #print(head(rho))
     # note how size is automatically scaled and added as hover text
-    plot_ly(rho,x=names,y=rho)%>%
+    plot_ly(rho,x=names,y=rho, mode="markers")%>%
       layout(xaxis = list(title="Drug"),
              yaxis = list(title="Rho"))
     
@@ -39,9 +40,16 @@ shinyServer(function(input, output,session) {
           median(values,na.rm = T)
         }))
         temp <- data.frame(drug = row.names(drugRho), medianVal, disease = x)
-        temp <- temp[order(temp$medianVal),]
+        #temp <- temp[order(temp$medianVal),]
         return(temp)
       })
+      index <- order(medianValues[[1]]$medianVal)
+      for (i in c(1:length(medianValues))){
+        medianValues[[i]] <- medianValues[[i]][index,]
+      }
+      
+      print(head(medianValues[[1]]))
+      
       medianValues <- do.call(rbind,medianValues)
     
       #frame = data.frame()
@@ -53,13 +61,17 @@ shinyServer(function(input, output,session) {
       #  frame = rbind(frame, temp)
       #}
       #frame <- as.data.frame(frame,stringsAsFactors=F)
-      plot_ly(medianValues, x=drug, y= medianVal,color=disease) #%>% #,type = "box") %>%
+      plot_ly(medianValues, x=drug, y= medianVal,color=disease, mode="markers") #%>% #,type = "box") %>%
         #add_trace(y = fitted(loess(values ~ as.numeric(drug))))# %>%
         #layout(yaxis = list(range=c(-0.5,1)))
     })
     
   })
-
+  
+  output$diseaseAreaOutput <- renderText({
+    paste(input$diseaseArea, collapse = ', ')    
+  })
+  
   output$coolPlot <- renderPlotly({
     withProgress(message = 'Calculation in progress',
                  detail = 'This may take a while...',  value = 0,{
@@ -68,7 +80,7 @@ shinyServer(function(input, output,session) {
       
       #May have multiple diseases, so loop through and gather top 20 freqCounts of each 
       #disease area
-      data = lapply(input$disease, function(x) {
+      data = lapply(input$diseaseArea, function(x) {
         diseaseArea=R[R$disease == x,]
         filtered = diseaseArea[order(diseaseArea$freqCounts,decreasing = T)[1:20],]
         return(filtered)
@@ -94,7 +106,7 @@ shinyServer(function(input, output,session) {
   output$mytable = renderDataTable({
     R = vdsRdf[vdsRdf$drug == input$dataset,]
     
-    data = lapply(input$disease, function(x) {
+    data = lapply(input$diseaseArea, function(x) {
       diseaseArea=R[R$disease == x,input$show_vars]
       filtered = diseaseArea[order(diseaseArea$freqCounts,decreasing = T)[1:20],]
       return(filtered)
