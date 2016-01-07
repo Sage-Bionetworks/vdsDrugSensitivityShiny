@@ -24,34 +24,44 @@ shinyServer(function(input, output,session) {
              yaxis = list(title="Rho"))
     
   })
-  observe({
-    updateSelectInput(session, "dataset", label = "Choose a drug:", choices = sort(vds()$names))
+  
+  # Generate a dataframe of medianValues of drugs for each disease area
+  vds2 <- reactive({
+    medianValues <- lapply(input$diseaseArea, function(x) {
+      diseaseRho <- drugRho[[x]]
+      medianVal <- unlist(lapply(diseaseRho, function(x) {
+        values <- unlist(strsplit(x, ","))
+        values <- values[values != "NA"]
+        values <- as.numeric(values)
+        median(values,na.rm = T)
+      }))
+      temp <- data.frame(drug = row.names(drugRho), medianVal, disease = x)
+      #temp <- temp[order(temp$medianVal),]
+      return(temp)
+    })
+    
+    # sort the medianValues according to the order of first df
+    index <- order(medianValues[[1]]$medianVal)
+    for (i in c(1:length(medianValues))){
+      medianValues[[i]] <- medianValues[[i]][index,]
+      # filter values according to the median threshold 
+      if(input$thresholdmedian > 0){
+        tempDf <-medianValues[[i]]
+        threshold <- input$thresholdmedian
+        medianValues[[i]] <- medianValues[[i]][tempDf$medianVal>=threshold,]
+      }
+    }
+    
+    medianValues <- do.call(rbind,medianValues)
+    medianValues
   })
   
   output$drugRho <- renderPlotly({
     withProgress(message = 'Calculation in progress',
                  detail = 'This may take a while...',  value = 0,{
-      medianValues <- lapply(input$diseaseArea, function(x) {
-        diseaseRho <- drugRho[[x]]
-        medianVal <- unlist(lapply(diseaseRho, function(x) {
-          values <- unlist(strsplit(x, ","))
-          values <- values[values != "NA"]
-          values <- as.numeric(values)
-          median(values,na.rm = T)
-        }))
-        temp <- data.frame(drug = row.names(drugRho), medianVal, disease = x)
-        #temp <- temp[order(temp$medianVal),]
-        return(temp)
-      })
-      index <- order(medianValues[[1]]$medianVal)
-      for (i in c(1:length(medianValues))){
-        medianValues[[i]] <- medianValues[[i]][index,]
-      }
       
-      print(head(medianValues[[1]]))
-      
-      medianValues <- do.call(rbind,medianValues)
-    
+      medianValues <- vds2()
+
       #frame = data.frame()
       #for (i in c(1:length(diseaseRho))) {
       #  values <- unlist(strsplit(diseaseRho[i], ","))
@@ -67,7 +77,27 @@ shinyServer(function(input, output,session) {
     })
     
   })
+
+  # Update choices
+  observe({
+    #finalChoices = intersection of vds()$names + vds2()$drug
+    drugChoices1 <- vds()$names
+    drugChoices2 <- as.character(vds2()$drug)
+    finalChoices <- intersect(drugChoices1,drugChoices2)
+    
+    totalChoices <- length(finalChoices)
+    cat("choices from model 1:" ,length(drugChoices1), sep="\n")
+    cat("choices from model 3:" ,length(drugChoices2), sep="\n")
+    cat("intersection total: ", totalChoices, sep="\n")
+    
+#     validate(
+#       need(totalChoices != 0, "Please choose valid thresholds")
+#     )
+
+    updateSelectInput(session, "dataset", label = "Choose a drug:", choices = sort(finalChoices))
+  })
   
+  # Output disease area input
   output$diseaseAreaOutput <- renderText({
     paste(input$diseaseArea, collapse = ', ')    
   })
