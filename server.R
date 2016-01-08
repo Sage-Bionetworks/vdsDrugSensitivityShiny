@@ -36,20 +36,22 @@ shinyServer(function(input, output,session) {
         median(values,na.rm = T)
       }))
       temp <- data.frame(drug = row.names(drugRho), medianVal, disease = x)
-      #temp <- temp[order(temp$medianVal),]
       return(temp)
     })
     
-    # sort the medianValues according to the order of first df
-    index <- order(medianValues[[1]]$medianVal)
+    threshold <- input$thresholdmedian
+    df1 <- medianValues[[1]]
+    
+    # filter f1 according to the median threshold, 
+    # then sort by medianVal 
+    # get the rownames of the order
+    valueIndex <- which(df1$medianVal>=threshold)
+    df_filter <- medianValues[[1]][valueIndex,]
+    df_sort <- df_filter[order(df_filter$medianVal),]
+    ordered.threshold <- as.numeric(rownames(df_sort))
+    
     for (i in c(1:length(medianValues))){
-      medianValues[[i]] <- medianValues[[i]][index,]
-      # filter values according to the median threshold 
-      if(input$thresholdmedian > 0){
-        tempDf <-medianValues[[i]]
-        threshold <- input$thresholdmedian
-        medianValues[[i]] <- medianValues[[i]][tempDf$medianVal>=threshold,]
-      }
+      medianValues[[i]] <- medianValues[[i]][ordered.threshold,]
     }
     
     medianValues <- do.call(rbind,medianValues)

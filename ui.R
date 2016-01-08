@@ -40,25 +40,20 @@ shinyUI(fluidPage(
       # Sidebar with a slider input for the number of bins
       sidebarLayout(
         sidebarPanel(
+          sliderInput("threshold","Choose a threshold Rho value:",value=-1,
+                      min = 0,max=1,step=0.1),
+          sliderInput("thresholdmedian","Choose a threshold median Rho value:",value=-1,
+                      min = 0,max=1,step=0.1),
+          
           selectInput("dataset", "Choose a drug:",
                       choices =drugs,selectize=T),
           h5("Disease area selected:", style="font-weight:700"),
           textOutput("diseaseAreaOutput"),
-#           selectInput("disease", "Choose a disease:",
-#                       choices = diseases,selectize=T,multiple=T,
-#                       selected = "BRCA"),
           checkboxInput('show_dt', 'Show data values', value = FALSE),
           
           conditionalPanel("input.show_dt",
                            checkboxGroupInput('show_vars', 'Columns to show:',
-                              showtable, selected = showtable)),
-          sliderInput("threshold","Choose a threshold Rho value:",value=-1,
-                      min = 0,max=1,step=0.1),
-          sliderInput("thresholdmedian","Choose a threshold median Rho value:",value=-1,
-                      min = 0,max=1,step=0.1)
-          
-          
-
+                              showtable, selected = showtable))
         ),
         
         # Show a plot of the generated distribution
@@ -68,23 +63,6 @@ shinyUI(fluidPage(
         )
       )
     )# End Model 2 Tab Panel
-    
-#Model 3 and Model 1 should be on same page
-#     tabPanel("Model 3", 
-#              titlePanel("Disease Performance Drug Sensitivity"),
-#              
-#              # Sidebar with a slider input for the number of bins
-#              sidebarLayout(
-#                sidebarPanel(
-#                  
-#                  selectInput("diseaseArea", "Choose an area:",
-#                              selectize=T,multiple=T,
-#                              choices = diseases,selected="BRCA")
-#                ),
-#                mainPanel(
-#                  plotlyOutput("drugRho")
-#                )
-#              )
-#     )#End tabPanel 3
+  
   )
 ))
