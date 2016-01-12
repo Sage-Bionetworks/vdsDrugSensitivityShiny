@@ -9,24 +9,48 @@ shinyServer(function(input, output,session) {
     rho <- as.data.frame(rho)
     rho$names = row.names(vdsRho)
     rho <- rho[order(rho$rho),]
-    rho <- rho[rho$rho>=input$threshold,]
     rho
   })
   
-  output$vfsperf <- renderPlotly({
-  
+  # Filtered cell line drug sensitivity data
+  filtered.vds <- reactive({
     rho <- vds()
+    rho <- rho[rho$rho>=input$threshold,]
+    rho$color <- 'type1'
+    rho
+  })
+  
+  # Dataframe for Model 1
+  drugDf <- reactive({
+    filteredRho <- filtered.vds()
+    selectedDrug <- input$drugList
     
-    #print(head(rho))
+    filteredRho[filteredRho$names %in% selectedDrug,]$color<- 'type2'
+    
+    filteredRho
+  })
+  
+  # Plot Model 1
+  output$vfsperf <- renderPlotly({
+    if(length(input$drugList) != 0){
+      rho <- drugDf()
+    }else{
+      rho <- filtered.vds()
+    }
+    
     # note how size is automatically scaled and added as hover text
-    plot_ly(rho,x=names,y=rho, mode="markers")%>%
+    plot_ly(rho,x=names,y=rho, color=color,name=names, mode="markers")%>%
       layout(xaxis = list(title="Drug"),
              yaxis = list(title="Rho"))
+      #maText(subset=input$drugList, labels=as.character(1:length(subset)))
     
   })
   
-  # Generate a dataframe of medianValues of drugs for each disease area
-  vds2 <- reactive({
+  # Generate a list medianValues of drugs for each disease area
+  drugMedianValues <- reactive({
+    validate(
+      need(try(input$diseaseArea != ""), "Please choose at least one area")
+    )
     medianValues <- lapply(input$diseaseArea, function(x) {
       diseaseRho <- drugRho[[x]]
       medianVal <- unlist(lapply(diseaseRho, function(x) {
@@ -38,7 +62,12 @@ shinyServer(function(input, output,session) {
       temp <- data.frame(drug = row.names(drugRho), medianVal, disease = x)
       return(temp)
     })
-    
+    medianValues
+  })
+  
+  # Generate a dataframe of median values. Filtered by threshold, sorted
+  filtered.drugMedianValues <- reactive({
+    medianValues <- drugMedianValues()
     threshold <- input$thresholdmedian
     df1 <- medianValues[[1]]
     
@@ -58,45 +87,39 @@ shinyServer(function(input, output,session) {
     medianValues
   })
   
+  # Plot drug sensitivity (Model 3)
   output$drugRho <- renderPlotly({
     withProgress(message = 'Calculation in progress',
                  detail = 'This may take a while...',  value = 0,{
       
-      medianValues <- vds2()
+      medianValues <-  filtered.drugMedianValues()
 
-      #frame = data.frame()
-      #for (i in c(1:length(diseaseRho))) {
-      #  values <- unlist(strsplit(diseaseRho[i], ","))
-      #  values <- values[values != "NA"]
-      #  values <- as.numeric(values)
-      #  temp <- data.frame(drug = row.names(drugRho)[i],values = values)  
-      #  frame = rbind(frame, temp)
-      #}
-      #frame <- as.data.frame(frame,stringsAsFactors=F)
-      plot_ly(medianValues, x=drug, y= medianVal,color=disease, mode="markers") #%>% #,type = "box") %>%
-        #add_trace(y = fitted(loess(values ~ as.numeric(drug))))# %>%
-        #layout(yaxis = list(range=c(-0.5,1)))
+      plot_ly(medianValues, x=drug, y= medianVal,color=disease, mode="markers")
     })
     
   })
+  
+  # Return intersections of model 1 and model 3 drug choices
+  finalChoices <- reactive({
+    #finalChoices: intersection of filtered.vds()$names + filtered.drugMedianValues()$drug
+    drugChoices1 <- filtered.vds()$names
+    drugChoices2 <- as.character(filtered.drugMedianValues()$drug)
+    choices <- intersect(drugChoices1,drugChoices2)
 
+    choices
+  })
+  
   # Update choices
   observe({
-    #finalChoices = intersection of vds()$names + vds2()$drug
-    drugChoices1 <- vds()$names
-    drugChoices2 <- as.character(vds2()$drug)
-    finalChoices <- intersect(drugChoices1,drugChoices2)
+    # Model 1 drug list update
+    updateSelectInput(session, "drugList", choices = sort(filtered.vds()$names))
     
-    totalChoices <- length(finalChoices)
-    cat("choices from model 1:" ,length(drugChoices1), sep="\n")
-    cat("choices from model 3:" ,length(drugChoices2), sep="\n")
-    cat("intersection total: ", totalChoices, sep="\n")
+    # Model 2 drug choices update
+    finalChoices <- finalChoices()
+    updateSelectInput(session, "dataset", choices = sort(finalChoices))
     
-#     validate(
-#       need(totalChoices != 0, "Please choose valid thresholds")
-#     )
-
-    updateSelectInput(session, "dataset", label = "Choose a drug:", choices = sort(finalChoices))
+    # Model 2 disease area auto fill
+    updateSelectInput(session, "diseaseList", selected = input$diseaseArea)
   })
   
   # Output disease area input
@@ -112,7 +135,7 @@ shinyServer(function(input, output,session) {
       
       #May have multiple diseases, so loop through and gather top 20 freqCounts of each 
       #disease area
-      data = lapply(input$diseaseArea, function(x) {
+      data = lapply(input$diseaseList, function(x) {
         diseaseArea=R[R$disease == x,]
         filtered = diseaseArea[order(diseaseArea$freqCounts,decreasing = T)[1:20],]
         return(filtered)
