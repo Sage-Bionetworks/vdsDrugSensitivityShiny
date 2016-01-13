@@ -78,9 +78,9 @@ shinyUI(fluidPage(
              sidebarLayout(
                sidebarPanel(
                  selectInput("drugSelected", "Choose a drug:",
-                         choices =drugs, selectize=T),
-                 checkboxGroupInput('show_vars', 'Columns to show:',
-                                    drugTableCol, selected = drugTableCol)
+                         choices =drugs, selectize=T)#,
+                 #checkboxGroupInput('show_vars', 'Columns to show:',
+                #                    drugTableCol, selected = drugTableCol)
                ),
                mainPanel(
                  #dataTableOutput('mytable')

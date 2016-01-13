@@ -16,33 +16,42 @@ shinyServer(function(input, output,session) {
   filtered.vds <- reactive({
     rho <- vds()
     rho <- rho[rho$rho>=input$threshold,]
-    rho$color <- 'type1'
+    #rho$color <- 'drug sensitivity'
     rho
   })
   
-  # Dataframe for Model 1
-  drugDf <- reactive({
-    filteredRho <- filtered.vds()
+  # Annonate selected drugs
+  drugAnnonates <- reactive({
+    a <- list()
+    rho <- filtered.vds()
     selectedDrug <- input$drugList
     
-    filteredRho[filteredRho$names %in% selectedDrug,]$color<- 'type2'
-    
-    filteredRho
+    if(length(selectedDrug) != 0){
+      for (i in c(1:length(selectedDrug))){
+        m <- rho[rho$names %in% selectedDrug,]
+        a[[i]] <- list(
+          x = m$names[i],
+          y = m$rho[i],
+          text = m$names[i],
+          showarrow = TRUE,
+          arrowhead = 7,
+          ax = 20,
+          ay = -40
+        )
+      }
+    }
+    a
   })
-  
   # Plot Model 1
   output$vfsperf <- renderPlotly({
-    if(length(input$drugList) != 0){
-      rho <- drugDf()
-    }else{
-      rho <- filtered.vds()
-    }
-    
+    rho <- filtered.vds()
+    a <- drugAnnonates()
+
     # note how size is automatically scaled and added as hover text
-    plot_ly(rho,x=names,y=rho, color=color,name=names, mode="markers")%>%
+    plot_ly(rho, x=names, y=rho, mode="markers")%>%
       layout(xaxis = list(title="Drug"),
-             yaxis = list(title="Rho"))
-      #maText(subset=input$drugList, labels=as.character(1:length(subset)))
+             yaxis = list(title="Rho"),
+             annotations = a)
     
   })
   
@@ -112,7 +121,7 @@ shinyServer(function(input, output,session) {
   # Update choices
   observe({
     # Model 1 drug list update
-    updateSelectInput(session, "drugList", choices = sort(filtered.vds()$names))
+    updateSelectInput(session, "drugList", choices = sort(filtered.vds()$names), selected = input$drugList)
     
     # Model 2 drug choices update
     finalChoices <- finalChoices()
@@ -122,11 +131,7 @@ shinyServer(function(input, output,session) {
     updateSelectInput(session, "diseaseList", selected = input$diseaseArea)
   })
   
-  # Output disease area input
-  output$diseaseAreaOutput <- renderText({
-    paste(input$diseaseArea, collapse = ', ')    
-  })
-  
+  # Model 2 Plot
   output$coolPlot <- renderPlotly({
     withProgress(message = 'Calculation in progress',
                  detail = 'This may take a while...',  value = 0,{
@@ -138,19 +143,23 @@ shinyServer(function(input, output,session) {
       data = lapply(input$diseaseList, function(x) {
         diseaseArea=R[R$disease == x,]
         filtered = diseaseArea[order(diseaseArea$freqCounts,decreasing = T)[1:20],]
+        
         return(filtered)
       })
       data = do.call(rbind, data)
+      
       #filtered = diseaseArea[diseaseArea$freqCounts > 0.05,]
       #filtered = filtered[filtered$freqEvents > 0.01,]
       
       # note how size is automatically scaled and added as hover text
       plot_ly(data, x = effect, y = freqCounts, 
-              text = paste("Feature Stability: ", freqCounts,
-                           "</br>Molecular Trait: ",genes,"</br>Effect Magnitude: ", effect,
-                           "</br>Disease: ",disease, "</br>Drug: ",drug,
-                           "</br>Event frequency: ", freqEvents),
-              size = freqEvents,color = disease, 
+              text = paste("Molecular Trait: ",genes,
+                           "</br>Feature Stability: ", freqCounts,
+                           "</br>Effect Magnitude: ", format(effect,digits = 3),
+                           "</br>Disease: ", disease, 
+                           "</br>Drug: ", drug,
+                           "</br>Event frequency: ", format(freqEvents*100,digits = 2),"%"),
+              size = sqrt(freqEvents),color = disease, 
               mode = "markers") %>%
         layout(xaxis = list(title="Effect Magnitude"),
                 yaxis = list(title="Feature Stability"))

@@ -22,7 +22,6 @@ diseases <- unique(vdsRdf$disease)
 drugs <- unique(vdsRdf$drug)
 drugs <- sort(drugs)
 
-
 showtable <- c("genes","effect",#"effectSD",
                "freqCounts","freqEvents","drug","disease")
 
