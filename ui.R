@@ -15,7 +15,7 @@ shinyUI(fluidPage(
                              choices = organs,selected="bone"),
                  sliderInput("threshold","Choose a threshold Rho value:",value=-1,
                              min = 0,max=1,step=0.1),
-                 selectInput("drugList", "Choose a drug:",
+                 selectInput("drugList1", "Choose a drug:",
                              selectize=T,multiple=T,
                              choices = drugs)
                  
@@ -34,7 +34,10 @@ shinyUI(fluidPage(
                             selectize=T,multiple=T,
                             choices = diseases,selected="BRCA"),
                  sliderInput("thresholdmedian","Choose a threshold median Rho value:",value=-1,
-                             min = 0,max=1,step=0.1)
+                             min = 0,max=1,step=0.1),
+                 selectInput("drugList2", "Choose a drug:",
+                             selectize=T,multiple=T,
+                             choices = drugs)
                 ),
                column(8,
                   plotlyOutput("drugRho")
@@ -50,17 +53,17 @@ shinyUI(fluidPage(
       sidebarLayout(
         sidebarPanel(
           selectInput("dataset", "Choose a drug:",
-                      choices =drugs,selectize=T),
+                      choices = drugs,selectize=T),
           selectInput("diseaseList", "Choose an area:",
                       selectize=T,multiple=T,
-                      choices = diseases),
+                      choices = diseases,selected="BRCA"),
           checkboxInput('show_dt', 'Show data values', value = FALSE),
           
           conditionalPanel("input.show_dt",
                            checkboxGroupInput('show_vars', 'Columns to show:',
-                              showtable, selected = showtable)),
-          sliderInput("thresholdEM","Choose a threshold Effect Magnitude:",value=-1,
-                      min = 0,max=1,step=0.1)
+                               showtable, selected = showtable)),
+           sliderInput("thresholdEM","Choose a threshold Effect Magnitude:",value=-1,
+                       min = 0,max=0.02,step=0.001)
         ),
         
         # Show a plot of the generated distribution
@@ -86,7 +89,22 @@ shinyUI(fluidPage(
                  #dataTableOutput('mytable')
                )
              )
-            
+    ),
+
+    tabPanel("Model 5",
+             titlePanel("Cell Line Information"),
+             
+             sidebarLayout(
+               sidebarPanel(
+                 selectInput("cellLineSelected", "Choose a organ:",
+                             choices =organs, selectize=T)#,
+                 #checkboxGroupInput('show_vars', 'Columns to show:',
+                 #                    drugTableCol, selected = drugTableCol)
+               ),
+               mainPanel(
+                 #dataTableOutput('mytable')
+               )
+             )
     )
   )
 ))

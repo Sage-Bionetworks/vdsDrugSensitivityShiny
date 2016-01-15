@@ -22,6 +22,13 @@ diseases <- unique(vdsRdf$disease)
 drugs <- unique(vdsRdf$drug)
 drugs <- sort(drugs)
 
+totalList <- sapply(diseases, function(x){
+  total <- length(vdsRdf[vdsRdf$disease == x,]$disease) 
+  return (total)
+})
+
+totalDf <- data.frame(totalList)
+
 showtable <- c("genes","effect",#"effectSD",
                "freqCounts","freqEvents","drug","disease")
 
