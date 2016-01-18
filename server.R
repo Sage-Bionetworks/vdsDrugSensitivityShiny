@@ -1,5 +1,5 @@
 library(pracma)
-
+library(DT)
 shinyServer(function(input, output,session) {
   
   ##How do you look at it from different perspectives
@@ -212,22 +212,22 @@ shinyServer(function(input, output,session) {
   })
   
   output$mytable = renderDataTable({
-#     R = vdsRdf[vdsRdf$drug == input$dataset,]
-#     
-#     data = lapply(input$diseaseList, function(x) {
-#       diseaseArea=R[R$disease == x,input$show_vars]
-#       filtered = diseaseArea[order(diseaseArea$freqCounts,decreasing = T)[1:20],]
-#       
-#       return(filtered)
-#     })
-#     data = do.call(rbind, data)
+
     data <- top20Data()
+    show.column <- input$show_vars
+    
     #Filter by freqCounts and freqEvents
     #filtered = diseaseArea[diseaseArea$freqCounts > 0.05,]
     #filtered = filtered[filtered$freqEvents > 0.01,]
-    return(data)
+    datatable(
+      data[,show.column],
+      rownames = FALSE,
+      filter = 'top',
+      options = list(
+        searching = TRUE
+      )
+    )
   })
-
   
 })
 

@@ -17,6 +17,11 @@ synapseLogin()
 #drugRho <- synGet("syn5578061")
 #drugRho <- read.csv(drugRho@filePath, stringsAsFactors = F, sep="\t")
 
+# # Drug metaData
+# drugData <- read.csv('metadata/drug_metadata.csv', header=TRUE,sep=",")
+
+
+
 organs <- colnames(vdsRho)
 diseases <- unique(vdsRdf$disease)
 drugs <- unique(vdsRdf$drug)
@@ -29,7 +34,12 @@ totalList <- sapply(diseases, function(x){
 
 totalDf <- data.frame(totalList)
 
-showtable <- c("genes","effect",#"effectSD",
-               "freqCounts","freqEvents","drug","disease")
+showtable <- c("disease","genes","effect",#"effectSD",
+               "freqCounts","freqEvents"#,"drug",
+               )
 
+drugTable <- c("disease","genes","effect",#"effectSD",
+               "freqCounts","freqEvents"#,"drug",
+)
 
+#cellLineTable <-
