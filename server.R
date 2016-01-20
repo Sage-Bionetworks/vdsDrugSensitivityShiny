@@ -211,6 +211,7 @@ shinyServer(function(input, output,session) {
       
   })
   
+  # Model 2 table
   output$mytable = renderDataTable({
     withProgress(message = 'Calculation in progress',
                  detail = 'This may take a while...',  value = 0,{
@@ -232,6 +233,7 @@ shinyServer(function(input, output,session) {
     })
   })
   
+  # Model 4: drug information table
   output$drugTable = renderDataTable({
     validate(
       need(input$drugSelected != '', "Please select at least one drug")
@@ -254,6 +256,7 @@ shinyServer(function(input, output,session) {
     })
   })
   
+  # Model 5: cell line information table
   output$cellLineTable = renderDataTable({
     withProgress(message = 'Calculation in progress',
                  detail = 'This may take a while...',  value = 0,{
