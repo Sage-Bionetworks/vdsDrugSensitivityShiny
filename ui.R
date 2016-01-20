@@ -81,12 +81,12 @@ shinyUI(fluidPage(
              sidebarLayout(
                sidebarPanel(
                  selectInput("drugSelected", "Choose a drug:",
-                         choices =drugs, selectize=T)#,
-                 #checkboxGroupInput('show_vars', 'Columns to show:',
-                #                    drugTableCol, selected = drugTableCol)
+                         choices =drugs, selectize=T, multiple = T),
+                 checkboxGroupInput('show_drug', 'Columns to show:',
+                                    drugTableCol, selected = drugTableCol)
                ),
                mainPanel(
-                 #dataTableOutput('mytable')
+                 dataTableOutput('drugTable')
                )
              )
     ),
@@ -97,14 +97,14 @@ shinyUI(fluidPage(
              sidebarLayout(
                sidebarPanel(
                  selectInput("cellLineSelected", "Choose a organ:",
-                             choices =organs, selectize=T)#,
-                 #checkboxGroupInput('show_vars', 'Columns to show:',
-                 #                    drugTableCol, selected = drugTableCol)
+                             choices = cellLines, selectize=T),
+                 checkboxGroupInput('show_cell_line', 'Columns to show:',
+                                     cellLineTableCol, selected = cellLineTableCol)
                ),
                mainPanel(
-                 #dataTableOutput('mytable')
+                 dataTableOutput('cellLineTable')
                )
              )
-    )
+   )
   )
 ))
