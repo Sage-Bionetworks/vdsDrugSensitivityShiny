@@ -2,22 +2,49 @@ shinyUI(fluidPage(
   
   # Application title
   tabsetPanel(
-    tabPanel("Model 1", 
+    tabPanel("Model 1 & 3",
+             # Model 1
              titlePanel("Cell Line Drug Sensitivity"),
-             
              # Sidebar with a slider input for the number of bins
-             sidebarLayout(
-               sidebarPanel(
+             fluidRow(
+               column(4,
                  
                  selectInput("organ", "Choose an organ:",
                              selectize=T,#multiple=T,
-                             choices = organs,selected="bone")
+                             choices = organs,selected="bone"),
+                 sliderInput("threshold","Choose a threshold Rho value:",value=-1,
+                             min = 0,max=1,step=0.1),
+                 selectInput("drugList1", "Choose a drug:",
+                             selectize=T,multiple=T,
+                             choices = drugs)
+                 
                ),
-               mainPanel(
+               column(8,
                  plotlyOutput("vfsperf")
                )
+             ),
+             
+             # Model 3
+             br(),
+             titlePanel("Disease Performance Drug Sensitivity"),
+             fluidRow(
+               column(4,
+                 selectInput("diseaseArea", "Choose an area:",
+                            selectize=T,multiple=T,
+                            choices = diseases,selected="BRCA"),
+                 sliderInput("thresholdmedian","Choose a threshold median Rho value:",value=-1,
+                             min = 0,max=1,step=0.1),
+                 selectInput("drugList2", "Choose a drug:",
+                             selectize=T,multiple=T,
+                             choices = drugs)
+                ),
+               column(8,
+                  plotlyOutput("drugRho")
+                )
              )
+             
     ),#End tabPanel 1
+    
     tabPanel("Model 2",
       titlePanel("Drug Sensitivity"),
       
@@ -25,23 +52,17 @@ shinyUI(fluidPage(
       sidebarLayout(
         sidebarPanel(
           selectInput("dataset", "Choose a drug:",
-                      choices =drugs,selectize=T),
-          
-          selectInput("disease", "Choose a disease:",
-                      choices = diseases,selectize=T,multiple=T,
-                      selected = "BRCA"),
+                      choices = drugs,selectize=T),
+          selectInput("diseaseList", "Choose an area:",
+                      selectize=T,multiple=T,
+                      choices = diseases,selected="BRCA"),
           checkboxInput('show_dt', 'Show data values', value = FALSE),
           
           conditionalPanel("input.show_dt",
                            checkboxGroupInput('show_vars', 'Columns to show:',
-                              showtable, selected = showtable)),
-          sliderInput("threshold","Choose a threshold Rho value:",value=-1,
-                      min = 0,max=1,step=0.1),
-          sliderInput("thresholdmedian","Choose a threshold median Rho value:",value=-1,
-                      min = 0,max=1,step=0.1)
-          
-          
-
+                               showtable, selected = showtable)),
+           sliderInput("thresholdEM","Choose a threshold Effect Magnitude:",value=-1,
+                       min = 0,max=0.02,step=0.001)
         ),
         
         # Show a plot of the generated distribution
@@ -50,24 +71,39 @@ shinyUI(fluidPage(
           conditionalPanel("!input.show_dt",plotlyOutput("coolPlot"))
         )
       )
-    ), # End Model 2 Tab Panel
+    ),# End Model 2 Tab Panel
     
-#Model 3 and Model 1 should be on same page
-    tabPanel("Model 3", 
-             titlePanel("Disease Performance Drug Sensitivity"),
+    
+    tabPanel("Model 4",
+             titlePanel("Drug Information"),
              
-             # Sidebar with a slider input for the number of bins
              sidebarLayout(
                sidebarPanel(
-                 
-                 selectInput("diseaseArea", "Choose an area:",
-                             selectize=T,multiple=T,
-                             choices = diseases,selected="BRCA")
+                 selectInput("drugSelected", "Choose a drug:",
+                         choices =drugs, selectize=T, multiple = T),
+                 checkboxGroupInput('show_drug', 'Columns to show:',
+                                    drugTableCol, selected = drugTableCol)
                ),
                mainPanel(
-                 plotlyOutput("drugRho")
+                 dataTableOutput('drugTable')
                )
              )
-    )#End tabPanel 3
+    ),
+
+    tabPanel("Model 5",
+             titlePanel("Cell Line Information"),
+             
+             sidebarLayout(
+               sidebarPanel(
+                 selectInput("cellLineSelected", "Choose a organ:",
+                             choices = cellLines, selectize=T),
+                 checkboxGroupInput('show_cell_line', 'Columns to show:',
+                                     cellLineTableCol, selected = cellLineTableCol)
+               ),
+               mainPanel(
+                 dataTableOutput('cellLineTable')
+               )
+             )
+   )
   )
 ))
