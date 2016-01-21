@@ -1,5 +1,3 @@
-library(pracma)
-library(DT)
 shinyServer(function(input, output,session) {
   
   ##How do you look at it from different perspectives
@@ -11,199 +9,81 @@ shinyServer(function(input, output,session) {
     rho <- as.data.frame(rho)
     rho$names = row.names(vdsRho)
     rho <- rho[order(rho$rho),]
-    rho
-  })
-  
-  # Filtered cell line drug sensitivity data
-  filtered.vds <- reactive({
-    rho <- vds()
     rho <- rho[rho$rho>=input$threshold,]
-    
     rho
   })
-  
-  # Annonate selected drugs for Model 1
-  drugAnnonates1 <- reactive({
-    a <- list()
-    rho <- filtered.vds()
-    selectedDrug <- input$drugList1
-    
-    if(length(selectedDrug) != 0){
-      for (i in c(1:length(selectedDrug))){
-        m <- rho[rho$names %in% selectedDrug,]
-        a[[i]] <- list(
-          x = m$names[i],
-          y = m$rho[i],
-          text = m$names[i],
-          showarrow = TRUE,
-          arrowhead = 7,
-          ax = 0,
-          ay = -100
-        )
-      }
-    }
-    a
-  })
-  # Plot Model 1
   output$vfsperf <- renderPlotly({
-    rho <- filtered.vds()
-    a <- drugAnnonates1()
     
+    rho <- vds()
+    
+    #print(head(rho))
     # note how size is automatically scaled and added as hover text
-    plot_ly(rho, x=names, y=rho, mode="markers")%>%
+    plot_ly(rho,x=names,y=rho)%>%
       layout(xaxis = list(title="Drug"),
-             yaxis = list(title="Rho"),
-             annotations = a)
+             yaxis = list(title="Rho"))
     
   })
-  
-  # Generate a list medianValues of drugs for each disease area
-  drugMedianValues <- reactive({
-    validate(
-      need(try(input$diseaseArea != ""), "Please choose at least one area")
-    )
-    medianValues <- lapply(input$diseaseArea, function(x) {
-      diseaseRho <- drugRho[[x]]
-      medianVal <- unlist(lapply(diseaseRho, function(x) {
-        values <- unlist(strsplit(x, ","))
-        values <- values[values != "NA"]
-        values <- as.numeric(values)
-        median(values,na.rm = T)
-      }))
-      temp <- data.frame(drug = row.names(drugRho), medianVal, disease = x)
-      return(temp)
-    })
-    
-    medianValues
+  observe({
+    updateSelectInput(session, "dataset", label = "Choose a drug:", choices = sort(vds()$names))
   })
   
-  # Generate a dataframe of median values. Filtered by threshold, sorted
-  filtered.drugMedianValues <- reactive({
-    medianValues <- drugMedianValues()
-    threshold <- input$thresholdmedian
-    df1 <- medianValues[[1]]
-    
-    # filter f1 according to the median threshold and drug choices from Model 1
-    # then sort by medianVal 
-    # get the rownames of the order
-    valueIndex <- which(df1$medianVal>=threshold)
-    df_filter <- medianValues[[1]][valueIndex,]
-    drugChoices1 <- filtered.vds()$names
-    drugChoices2 <- df_filter$drug
-    newDrugChoices2 <- intersect(drugChoices1,drugChoices2)
-    
-    df_filter <- medianValues[[1]][medianValues[[1]]$drug %in% newDrugChoices2,]
-    
-    df_sort <- df_filter[order(df_filter$medianVal),]
-    ordered.threshold <- as.numeric(rownames(df_sort))
-    
-    for (i in c(1:length(medianValues))){
-      medianValues[[i]] <- medianValues[[i]][ordered.threshold,]
-    }
-    
-    medianValues <- do.call(rbind,medianValues)
-    medianValues
-  })
-  
-  # Annonate selected drugs for Model 3 
-  drugAnnonates2 <- reactive({
-    a <- list()
-    rho <- drugMedianValues()[[1]]
-    selectedDrug <- input$drugList2
-   
-    if(length(selectedDrug) != 0){
-      for (i in c(1:length(selectedDrug))){
-        m <- rho[rho$drug %in% selectedDrug,]
-        a[[i]] <- list(
-          x = m$drug[i],
-          y = m$medianVal[i],
-          text = m$drug[i],
-          showarrow = TRUE,
-          arrowhead = 7,
-          ax = 0,
-          ay = -150
-        )
-      }
-    }
-    a
-  })
-  
-  # Plot drug sensitivity (Model 3)
   output$drugRho <- renderPlotly({
     withProgress(message = 'Calculation in progress',
                  detail = 'This may take a while...',  value = 0,{
-      
-      medianValues <-  filtered.drugMedianValues()
-      a <- drugAnnonates2()
-      plot_ly(medianValues, x=drug, y= medianVal,color=disease, mode="markers")%>%
-        layout(annotations = a)
+      medianValues <- lapply(input$diseaseArea, function(x) {
+        diseaseRho <- drugRho[[x]]
+        medianVal <- unlist(lapply(diseaseRho, function(x) {
+          values <- unlist(strsplit(x, ","))
+          values <- values[values != "NA"]
+          values <- as.numeric(values)
+          median(values,na.rm = T)
+        }))
+        temp <- data.frame(drug = row.names(drugRho), medianVal, disease = x)
+        temp <- temp[order(temp$medianVal),]
+        return(temp)
+      })
+      medianValues <- do.call(rbind,medianValues)
+    
+      #frame = data.frame()
+      #for (i in c(1:length(diseaseRho))) {
+      #  values <- unlist(strsplit(diseaseRho[i], ","))
+      #  values <- values[values != "NA"]
+      #  values <- as.numeric(values)
+      #  temp <- data.frame(drug = row.names(drugRho)[i],values = values)  
+      #  frame = rbind(frame, temp)
+      #}
+      #frame <- as.data.frame(frame,stringsAsFactors=F)
+      plot_ly(medianValues, x=drug, y= medianVal,color=disease) #%>% #,type = "box") %>%
+        #add_trace(y = fitted(loess(values ~ as.numeric(drug))))# %>%
+        #layout(yaxis = list(range=c(-0.5,1)))
     })
     
   })
-  
-  # Update choices
-  observe({
-    # Model 1 drug list update
-    updateSelectInput(session, "drugList1", choices = sort(filtered.vds()$names), selected = input$drugList1)
-    
-    # Model 3 drug list update
-    updateSelectInput(session, "drugList2", choices = sort(as.character(filtered.drugMedianValues()$drug)), selected = input$drugList2)
-    
-    # Model 2 drug choices update
-    finalChoices <- as.character(filtered.drugMedianValues()$drug)
-    updateSelectInput(session, "dataset", choices = sort(finalChoices),selected = input$dataset)
-    
-    # Model 2 sliderMax
-    EM <- top20Data()$effect
-    resultEM <- max(abs(max(EM)),abs(min(EM)))
-    updateSliderInput(session, "thresholdEM", max = floor(resultEM*1000)/1000)
-  })
-  
-  # Generates Model 2 data
-  top20Data <- reactive({
-    validate(
-      need(input$dataset != '', "Please choose a drug"),
-      need(length(input$diseaseList) > 0, "Please choose at least one disease area")
-    )
-    R = vdsRdf[vdsRdf$drug == input$dataset,]
-  
-    #May have multiple diseases, so loop through and gather top 20 freqCounts of each 
-    #disease area
-    data = lapply(input$diseaseList, function(x) {
-      diseaseArea=R[R$disease == x,]
-      
-      filtered = diseaseArea[order(diseaseArea$freqCounts,decreasing = T)[1:20],]
-      filtered = filtered[abs(filtered$effect)>=input$thresholdEM,]
-      return(filtered)
-    })
-    data = do.call(rbind, data)
-    data
-  })
-  
-  # Model 2 Plot
+
   output$coolPlot <- renderPlotly({
     withProgress(message = 'Calculation in progress',
                  detail = 'This may take a while...',  value = 0,{
       incProgress(session= session)
-      data <- top20Data()
+      R = vdsRdf[vdsRdf$drug == input$dataset,]
       
+      #May have multiple diseases, so loop through and gather top 20 freqCounts of each 
+      #disease area
+      data = lapply(input$disease, function(x) {
+        diseaseArea=R[R$disease == x,]
+        filtered = diseaseArea[order(diseaseArea$freqCounts,decreasing = T)[1:20],]
+        return(filtered)
+      })
+      data = do.call(rbind, data)
       #filtered = diseaseArea[diseaseArea$freqCounts > 0.05,]
       #filtered = filtered[filtered$freqEvents > 0.01,]
       
       # note how size is automatically scaled and added as hover text
-      
-      size <- nthroot(data$freqEvent, 2)
-      size <- as.numeric(format(size,digits = 3))
-      total <- totalDf[data$disease,]
-      
-      plot_ly(data, x = effect, y = freqCounts,hoverinfo="text",
-              text = paste("Molecular Trait: ",genes,
-                           "</br>Feature Stability: ", freqCounts,
-                           "</br>Effect Magnitude: ", format(effect,digits = 3),
-                           "</br>Disease: ", disease, 
-                           "</br>Drug: ", drug,
-                           "</br>Event frequency: ", format(freqEvents*100,digits = 2),"% out of",total),
-              size = size,color = disease, 
+      plot_ly(data, x = effect, y = freqCounts, 
+              text = paste("Feature Stability: ", freqCounts,
+                           "</br>Molecular Trait: ",genes,"</br>Effect Magnitude: ", effect,
+                           "</br>Disease: ",disease, "</br>Drug: ",drug,
+                           "</br>Event frequency: ", freqEvents),
+              size = freqEvents,color = disease, 
               mode = "markers") %>%
         layout(xaxis = list(title="Effect Magnitude"),
                 yaxis = list(title="Feature Stability"))
@@ -212,69 +92,23 @@ shinyServer(function(input, output,session) {
   })
   
   output$mytable = renderDataTable({
-    withProgress(message = 'Calculation in progress',
-                 detail = 'This may take a while...',  value = 0,{
-                   incProgress(session= session)
-      data <- top20Data()
-      show.column <- input$show_vars
-      
-      #Filter by freqCounts and freqEvents
-      #filtered = diseaseArea[diseaseArea$freqCounts > 0.05,]
-      #filtered = filtered[filtered$freqEvents > 0.01,]
-      datatable(
-        data[,show.column],
-        rownames = FALSE,
-        filter = 'top',
-        options = list(
-          searching = TRUE
-        )
-      )
+    R = vdsRdf[vdsRdf$drug == input$dataset,]
+    
+    data = lapply(input$disease, function(x) {
+      diseaseArea=R[R$disease == x,input$show_vars]
+      filtered = diseaseArea[order(diseaseArea$freqCounts,decreasing = T)[1:20],]
+      return(filtered)
     })
+    data = do.call(rbind, data)
+
+    #Filter by freqCounts and freqEvents
+    #filtered = diseaseArea[diseaseArea$freqCounts > 0.05,]
+    #filtered = filtered[filtered$freqEvents > 0.01,]
+    return(data)
   })
-  
-  output$drugTable = renderDataTable({
-    validate(
-      need(input$drugSelected != '', "Please select at least one drug")
-    )
-    withProgress(message = 'Calculation in progress',
-                 detail = 'This may take a while...',  value = 0,{
-                   incProgress(session= session)
-      data <- drugData[drugData$cpd_name %in% input$drugSelected,]
-      
-      show.column <- input$show_drug
-      
-      datatable(
-        data[,show.column],
-        rownames = FALSE,
-        filter = 'top',
-        options = list(
-          searching = TRUE
-        )
-      )
-    })
-  })
-  
-  output$cellLineTable = renderDataTable({
-    withProgress(message = 'Calculation in progress',
-                 detail = 'This may take a while...',  value = 0,{
-                   incProgress(session= session)
-      data <- cellLineData[cellLineData$ccle_primary_site %in% input$cellLineSelected,]
-      
-      show.column <- input$show_cell_line
-      
-      datatable(
-        data[,show.column],
-        rownames = FALSE,
-        filter = 'top',
-        options = list(
-          searching = TRUE
-        )
-      )
-    })
-  })
+
   
 })
-
 
 
 

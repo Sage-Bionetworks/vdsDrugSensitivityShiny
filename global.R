@@ -3,11 +3,6 @@ library(shiny)
 library(plotly)
 synapseLogin()
 
-library(synapseClient)
-library(shiny)
-library(plotly)
-synapseLogin()
-
 #vdsRdf <- synGet("syn5520037")
 
 #vdsRho <- synGet("syn5520030")
@@ -31,4 +26,3 @@ drugs <- sort(drugs)
 
 showtable <- c("genes","effect",#"effectSD",
                "freqCounts","freqEvents","drug","disease")
-
