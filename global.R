@@ -43,14 +43,16 @@ diseases <- unique(vdsRdf$disease)
 drugs <- unique(vdsRdf$drug)
 drugs <- sort(drugs)
 
+#Cell Line list from cell line metadata
 cellLines <- unique(cellLineData$ccle_primary_site)
 cellLines <- sort(as.character(cellLines[cellLines != ""]))
+
+organs <- intersect(organs,cellLines)
 
 totalList <- sapply(diseases, function(x){
   total <- length(vdsRdf[vdsRdf$disease == x,]$disease) 
   return (total)
 })
-
 
 totalDf <- data.frame(totalList)
 

@@ -44,6 +44,7 @@ shinyServer(function(input, output,session) {
     }
     a
   })
+  
   # Plot Model 1
   output$vfsperf <- renderPlotly({
     rho <- filtered.vds()
@@ -80,7 +81,7 @@ shinyServer(function(input, output,session) {
   # Generate a dataframe of median values. Filtered by threshold, sorted
   filtered.drugMedianValues <- reactive({
     medianValues <- drugMedianValues()
-    threshold <- input$thresholdmedian
+    threshold <- input$thresholdMedian
     df1 <- medianValues[[1]]
     
     # filter f1 according to the median threshold and drug choices from Model 1
@@ -151,7 +152,7 @@ shinyServer(function(input, output,session) {
     
     # Model 2 drug choices update
     finalChoices <- as.character(filtered.drugMedianValues()$drug)
-    updateSelectInput(session, "dataset", choices = sort(finalChoices),selected = input$dataset)
+    updateSelectInput(session, "drugList3", choices = sort(finalChoices),selected = input$drugList3)
     
     # Model 2 sliderMax
     EM <- top20Data()$effect
@@ -159,13 +160,17 @@ shinyServer(function(input, output,session) {
     updateSliderInput(session, "thresholdEM", max = floor(resultEM*1000)/1000)
   })
   
+  # Outputs selected organ from Model 1 in Model 2
+  output$selectedOrgan <- renderText({
+    input$organ
+  })
   # Generates Model 2 data
   top20Data <- reactive({
     validate(
-      need(input$dataset != '', "Please choose a drug"),
+      need(input$drugList3 != '', "Please choose a drug"),
       need(length(input$diseaseList) > 0, "Please choose at least one disease area")
     )
-    R = vdsRdf[vdsRdf$drug == input$dataset,]
+    R = vdsRdf[vdsRdf$drug == input$drugList3,]
   
     #May have multiple diseases, so loop through and gather top 20 freqCounts of each 
     #disease area
@@ -181,7 +186,7 @@ shinyServer(function(input, output,session) {
   })
   
   # Model 2 Plot
-  output$coolPlot <- renderPlotly({
+  output$dsPlot <- renderPlotly({
     withProgress(message = 'Calculation in progress',
                  detail = 'This may take a while...',  value = 0,{
       incProgress(session= session)
@@ -212,7 +217,7 @@ shinyServer(function(input, output,session) {
   })
   
   # Model 2 table
-  output$mytable = renderDataTable({
+  output$dsDataTable = renderDataTable({
     withProgress(message = 'Calculation in progress',
                  detail = 'This may take a while...',  value = 0,{
                    incProgress(session= session)

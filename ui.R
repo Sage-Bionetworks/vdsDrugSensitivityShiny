@@ -33,7 +33,7 @@ shinyUI(fluidPage(
                  selectInput("diseaseArea", "Choose an area:",
                             selectize=T,multiple=T,
                             choices = diseases,selected="BRCA"),
-                 sliderInput("thresholdmedian","Choose a threshold median Rho value:",value=-1,
+                 sliderInput("thresholdMedian","Choose a threshold median Rho value:",value=-1,
                              min = 0,max=1,step=0.1),
                  selectInput("drugList2", "Choose a drug:",
                              selectize=T,multiple=T,
@@ -52,7 +52,10 @@ shinyUI(fluidPage(
       # Sidebar with a slider input for the number of bins
       sidebarLayout(
         sidebarPanel(
-          selectInput("dataset", "Choose a drug:",
+          span("Selected organ: ", style="font-size:14px;font-weight:700"),
+          textOutput("selectedOrgan"),
+          br(),
+          selectInput("drugList3", "Choose a drug:",
                       choices = drugs,selectize=T),
           selectInput("diseaseList", "Choose an area:",
                       selectize=T,multiple=T,
@@ -68,8 +71,8 @@ shinyUI(fluidPage(
         
         # Show a plot of the generated distribution
         mainPanel(
-          conditionalPanel("input.show_dt", dataTableOutput('mytable')),
-          conditionalPanel("!input.show_dt",plotlyOutput("coolPlot"))
+          conditionalPanel("input.show_dt", dataTableOutput('dsDataTable')),
+          conditionalPanel("!input.show_dt",plotlyOutput("dsPlot"))
         )
       )
     ),# End Model 2 Tab Panel
@@ -97,7 +100,7 @@ shinyUI(fluidPage(
              sidebarLayout(
                sidebarPanel(
                  selectInput("cellLineSelected", "Choose a organ:",
-                             choices = cellLines, selectize=T),
+                             choices = organs, selectize=T),
                  checkboxGroupInput('show_cell_line', 'Columns to show:',
                                      cellLineTableCol, selected = cellLineTableCol)
                ),
