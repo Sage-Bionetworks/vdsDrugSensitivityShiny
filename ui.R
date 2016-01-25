@@ -11,7 +11,7 @@ shinyUI(fluidPage(
                  
                  selectInput("organ", "Choose an organ:",
                              selectize=T,#multiple=T,
-                             choices = organs,selected="bone"),
+                             choices = organs,selected="ALL"),
                  sliderInput("threshold","Choose a threshold Rho value:",value=-1,
                              min = 0,max=1,step=0.1),
                  selectInput("drugList1", "Highlight a drug:",
