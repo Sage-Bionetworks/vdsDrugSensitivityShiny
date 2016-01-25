@@ -60,7 +60,7 @@ showtable <- c("disease","genes","effect",#"effectSD",
                "freqCounts","freqEvents"#,"drug",
                )
 
-drugTableCol <- c("master_cpd_id","broad_cpd_id","cpd_status","gene_symbol_of_protein_target",
+drugTableCol <- c("cpd_name","master_cpd_id","broad_cpd_id","cpd_status","gene_symbol_of_protein_target",
                "target_or_activity_of_compound","source_name","source_catalog_id")
 
 cellLineTableCol <- c("ccl_name", "ccl_availability","ccle_primary_hist", "ccle_hist_subtype_1")

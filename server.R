@@ -147,12 +147,18 @@ shinyServer(function(input, output,session) {
     # Model 1 drug list update
     updateSelectInput(session, "drugList1", choices = sort(filtered.vds()$names), selected = input$drugList1)
     
+    filteredDrugChoices <- as.character(filtered.drugMedianValues()$drug)
+    filteredDrugChoices <- sort(filteredDrugChoices)
+    
     # Model 3 drug list update
-    updateSelectInput(session, "drugList2", choices = sort(as.character(filtered.drugMedianValues()$drug)), selected = input$drugList2)
+    updateSelectInput(session, "drugList2", choices = filteredDrugChoices, selected = input$drugList2)
     
     # Model 2 drug choices update
-    finalChoices <- as.character(filtered.drugMedianValues()$drug)
-    updateSelectInput(session, "drugList3", choices = sort(finalChoices),selected = input$drugList3)
+    updateSelectInput(session, "drugList3", choices = filteredDrugChoices,selected = input$drugList3)
+    
+    # Model 2 other disease area update
+    otherDiseaseArea <- diseases[!(diseases %in% input$diseaseArea[1])]
+    updateSelectInput(session, "otherDiseaseList", choices = otherDiseaseArea ,selected = input$otherDiseaseList)
     
     # Model 2 sliderMax
     EM <- top20Data()$effect
@@ -164,17 +170,25 @@ shinyServer(function(input, output,session) {
   output$selectedOrgan <- renderText({
     input$organ
   })
+  
+  # Outputs selected disease area from Model 1 in Model 2
+  output$selectedArea <- renderText({
+    input$diseaseArea[1]
+  })
+  
   # Generates Model 2 data
   top20Data <- reactive({
     validate(
-      need(input$drugList3 != '', "Please choose a drug"),
-      need(length(input$diseaseList) > 0, "Please choose at least one disease area")
+      need(input$drugList3 != '', "Please choose a drug")
+      #need(length(input$otherDiseaseList) > 0, "Please choose at least one disease area")
     )
     R = vdsRdf[vdsRdf$drug == input$drugList3,]
   
     #May have multiple diseases, so loop through and gather top 20 freqCounts of each 
     #disease area
-    data = lapply(input$diseaseList, function(x) {
+    diseaseList <- union(input$otherDiseaseList,input$diseaseArea[1])
+    diseaseList <- sort(diseaseList)
+    data = lapply(diseaseList, function(x) {
       diseaseArea=R[R$disease == x,]
       
       filtered = diseaseArea[order(diseaseArea$freqCounts,decreasing = T)[1:20],]

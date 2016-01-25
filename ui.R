@@ -15,7 +15,7 @@ shinyUI(fluidPage(
                              choices = organs,selected="bone"),
                  sliderInput("threshold","Choose a threshold Rho value:",value=-1,
                              min = 0,max=1,step=0.1),
-                 selectInput("drugList1", "Choose a drug:",
+                 selectInput("drugList1", "Highlight a drug:",
                              selectize=T,multiple=T,
                              choices = drugs)
                  
@@ -35,7 +35,7 @@ shinyUI(fluidPage(
                             choices = diseases,selected="BRCA"),
                  sliderInput("thresholdMedian","Choose a threshold median Rho value:",value=-1,
                              min = 0,max=1,step=0.1),
-                 selectInput("drugList2", "Choose a drug:",
+                 selectInput("drugList2", "Highlight a drug:",
                              selectize=T,multiple=T,
                              choices = drugs)
                 ),
@@ -57,7 +57,10 @@ shinyUI(fluidPage(
           br(),
           selectInput("drugList3", "Choose a drug:",
                       choices = drugs,selectize=T),
-          selectInput("diseaseList", "Choose an area:",
+          span("Selected area: ", style="font-size:14px;font-weight:700"),
+          textOutput("selectedArea"),
+          br(),
+          selectInput("otherDiseaseList", "Compare with other area:",
                       selectize=T,multiple=T,
                       choices = diseases,selected="BRCA"),
           checkboxInput('show_dt', 'Show data values', value = FALSE),
