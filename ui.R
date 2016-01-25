@@ -1,4 +1,3 @@
-
 shinyUI(fluidPage(
   
   # Application title
@@ -78,39 +77,6 @@ shinyUI(fluidPage(
           conditionalPanel("!input.show_dt",plotlyOutput("dsPlot"))
         )
       )
-    ),# End Model 2 Tab Panel
-    
-    
-    tabPanel("Model 4",
-             titlePanel("Drug Information"),
-             
-             sidebarLayout(
-               sidebarPanel(
-                 selectInput("drugSelected", "Choose a drug:",
-                         choices =drugs, selectize=T, multiple = T),
-                 checkboxGroupInput('show_drug', 'Columns to show:',
-                                    drugTableCol, selected = drugTableCol)
-               ),
-               mainPanel(
-                 dataTableOutput('drugTable')
-               )
-             )
-    ),
-
-    tabPanel("Model 5",
-             titlePanel("Cell Line Information"),
-             
-             sidebarLayout(
-               sidebarPanel(
-                 selectInput("cellLineSelected", "Choose a organ:",
-                             choices = organs, selectize=T),
-                 checkboxGroupInput('show_cell_line', 'Columns to show:',
-                                     cellLineTableCol, selected = cellLineTableCol)
-               ),
-               mainPanel(
-                 dataTableOutput('cellLineTable')
-               )
-             )
-   )
+    )# End Model 2 Tab Panel
   )
 ))
