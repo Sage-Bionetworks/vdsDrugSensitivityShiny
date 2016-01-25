@@ -1,5 +1,3 @@
-library(pracma)
-library(DT)
 shinyServer(function(input, output,session) {
   
   ##How do you look at it from different perspectives
@@ -44,6 +42,7 @@ shinyServer(function(input, output,session) {
     }
     a
   })
+  
   # Plot Model 1
   output$vfsperf <- renderPlotly({
     rho <- filtered.vds()
@@ -80,7 +79,7 @@ shinyServer(function(input, output,session) {
   # Generate a dataframe of median values. Filtered by threshold, sorted
   filtered.drugMedianValues <- reactive({
     medianValues <- drugMedianValues()
-    threshold <- input$thresholdmedian
+    threshold <- input$thresholdMedian
     df1 <- medianValues[[1]]
     
     # filter f1 according to the median threshold and drug choices from Model 1
@@ -146,12 +145,18 @@ shinyServer(function(input, output,session) {
     # Model 1 drug list update
     updateSelectInput(session, "drugList1", choices = sort(filtered.vds()$names), selected = input$drugList1)
     
+    filteredDrugChoices <- as.character(filtered.drugMedianValues()$drug)
+    filteredDrugChoices <- sort(filteredDrugChoices)
+    
     # Model 3 drug list update
-    updateSelectInput(session, "drugList2", choices = sort(as.character(filtered.drugMedianValues()$drug)), selected = input$drugList2)
+    updateSelectInput(session, "drugList2", choices = filteredDrugChoices, selected = input$drugList2)
     
     # Model 2 drug choices update
-    finalChoices <- as.character(filtered.drugMedianValues()$drug)
-    updateSelectInput(session, "dataset", choices = sort(finalChoices),selected = input$dataset)
+    updateSelectInput(session, "drugList3", choices = filteredDrugChoices,selected = input$drugList3)
+    
+    # Model 2 other disease area update
+    otherDiseaseArea <- diseases[!(diseases %in% input$diseaseArea[1])]
+    updateSelectInput(session, "otherDiseaseList", choices = otherDiseaseArea ,selected = input$otherDiseaseList)
     
     # Model 2 sliderMax
     EM <- top20Data()$effect
@@ -159,17 +164,29 @@ shinyServer(function(input, output,session) {
     updateSliderInput(session, "thresholdEM", max = floor(resultEM*1000)/1000)
   })
   
+  # Outputs selected organ from Model 1 in Model 2
+  output$selectedOrgan <- renderText({
+    input$organ
+  })
+  
+  # Outputs selected disease area from Model 1 in Model 2
+  output$selectedArea <- renderText({
+    input$diseaseArea[1]
+  })
+  
   # Generates Model 2 data
   top20Data <- reactive({
     validate(
-      need(input$dataset != '', "Please choose a drug"),
-      need(length(input$diseaseList) > 0, "Please choose at least one disease area")
+      need(input$drugList3 != '', "Please choose a drug")
+      #need(length(input$otherDiseaseList) > 0, "Please choose at least one disease area")
     )
-    R = vdsRdf[vdsRdf$drug == input$dataset,]
+    R = vdsRdf[vdsRdf$drug == input$drugList3,]
   
     #May have multiple diseases, so loop through and gather top 20 freqCounts of each 
     #disease area
-    data = lapply(input$diseaseList, function(x) {
+    diseaseList <- union(input$otherDiseaseList,input$diseaseArea[1])
+    diseaseList <- sort(diseaseList)
+    data = lapply(diseaseList, function(x) {
       diseaseArea=R[R$disease == x,]
       
       filtered = diseaseArea[order(diseaseArea$freqCounts,decreasing = T)[1:20],]
@@ -181,7 +198,7 @@ shinyServer(function(input, output,session) {
   })
   
   # Model 2 Plot
-  output$coolPlot <- renderPlotly({
+  output$dsPlot <- renderPlotly({
     withProgress(message = 'Calculation in progress',
                  detail = 'This may take a while...',  value = 0,{
       incProgress(session= session)
@@ -212,7 +229,7 @@ shinyServer(function(input, output,session) {
   })
   
   # Model 2 table
-  output$mytable = renderDataTable({
+  output$dsDataTable = renderDataTable({
     withProgress(message = 'Calculation in progress',
                  detail = 'This may take a while...',  value = 0,{
                    incProgress(session= session)
@@ -232,50 +249,6 @@ shinyServer(function(input, output,session) {
       )
     })
   })
-  
-  # Model 4: drug information table
-  output$drugTable = renderDataTable({
-    validate(
-      need(input$drugSelected != '', "Please select at least one drug")
-    )
-    withProgress(message = 'Calculation in progress',
-                 detail = 'This may take a while...',  value = 0,{
-                   incProgress(session= session)
-      data <- drugData[drugData$cpd_name %in% input$drugSelected,]
-      
-      show.column <- input$show_drug
-      
-      datatable(
-        data[,show.column],
-        rownames = FALSE,
-        filter = 'top',
-        options = list(
-          searching = TRUE
-        )
-      )
-    })
-  })
-  
-  # Model 5: cell line information table
-  output$cellLineTable = renderDataTable({
-    withProgress(message = 'Calculation in progress',
-                 detail = 'This may take a while...',  value = 0,{
-                   incProgress(session= session)
-      data <- cellLineData[cellLineData$ccle_primary_site %in% input$cellLineSelected,]
-      
-      show.column <- input$show_cell_line
-      
-      datatable(
-        data[,show.column],
-        rownames = FALSE,
-        filter = 'top',
-        options = list(
-          searching = TRUE
-        )
-      )
-    })
-  })
-  
 })
 
 

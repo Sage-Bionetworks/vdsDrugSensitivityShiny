@@ -11,10 +11,10 @@ shinyUI(fluidPage(
                  
                  selectInput("organ", "Choose an organ:",
                              selectize=T,#multiple=T,
-                             choices = organs,selected="bone"),
+                             choices = organs,selected="ALL"),
                  sliderInput("threshold","Choose a threshold Rho value:",value=-1,
                              min = 0,max=1,step=0.1),
-                 selectInput("drugList1", "Choose a drug:",
+                 selectInput("drugList1", "Highlight a drug:",
                              selectize=T,multiple=T,
                              choices = drugs)
                  
@@ -32,9 +32,9 @@ shinyUI(fluidPage(
                  selectInput("diseaseArea", "Choose an area:",
                             selectize=T,multiple=T,
                             choices = diseases,selected="BRCA"),
-                 sliderInput("thresholdmedian","Choose a threshold median Rho value:",value=-1,
+                 sliderInput("thresholdMedian","Choose a threshold median Rho value:",value=-1,
                              min = 0,max=1,step=0.1),
-                 selectInput("drugList2", "Choose a drug:",
+                 selectInput("drugList2", "Highlight a drug:",
                              selectize=T,multiple=T,
                              choices = drugs)
                 ),
@@ -51,9 +51,15 @@ shinyUI(fluidPage(
       # Sidebar with a slider input for the number of bins
       sidebarLayout(
         sidebarPanel(
-          selectInput("dataset", "Choose a drug:",
+          span("Selected organ: ", style="font-size:14px;font-weight:700"),
+          textOutput("selectedOrgan"),
+          br(),
+          selectInput("drugList3", "Choose a drug:",
                       choices = drugs,selectize=T),
-          selectInput("diseaseList", "Choose an area:",
+          span("Selected area: ", style="font-size:14px;font-weight:700"),
+          textOutput("selectedArea"),
+          br(),
+          selectInput("otherDiseaseList", "Compare with other area:",
                       selectize=T,multiple=T,
                       choices = diseases,selected="BRCA"),
           checkboxInput('show_dt', 'Show data values', value = FALSE),
@@ -67,43 +73,10 @@ shinyUI(fluidPage(
         
         # Show a plot of the generated distribution
         mainPanel(
-          conditionalPanel("input.show_dt", dataTableOutput('mytable')),
-          conditionalPanel("!input.show_dt",plotlyOutput("coolPlot"))
+          conditionalPanel("input.show_dt", dataTableOutput('dsDataTable')),
+          conditionalPanel("!input.show_dt",plotlyOutput("dsPlot"))
         )
       )
-    ),# End Model 2 Tab Panel
-    
-    
-    tabPanel("Model 4",
-             titlePanel("Drug Information"),
-             
-             sidebarLayout(
-               sidebarPanel(
-                 selectInput("drugSelected", "Choose a drug:",
-                         choices =drugs, selectize=T, multiple = T),
-                 checkboxGroupInput('show_drug', 'Columns to show:',
-                                    drugTableCol, selected = drugTableCol)
-               ),
-               mainPanel(
-                 dataTableOutput('drugTable')
-               )
-             )
-    ),
-
-    tabPanel("Model 5",
-             titlePanel("Cell Line Information"),
-             
-             sidebarLayout(
-               sidebarPanel(
-                 selectInput("cellLineSelected", "Choose a organ:",
-                             choices = cellLines, selectize=T),
-                 checkboxGroupInput('show_cell_line', 'Columns to show:',
-                                     cellLineTableCol, selected = cellLineTableCol)
-               ),
-               mainPanel(
-                 dataTableOutput('cellLineTable')
-               )
-             )
-   )
+    )# End Model 2 Tab Panel
   )
 ))
