@@ -209,7 +209,7 @@ shinyServer(function(input, output,session) {
       
       # note how size is automatically scaled and added as hover text
       
-      size <- nthroot(data$freqEvent, 2)
+      size <- normalize.vector((data$freqEvents)^2)
       size <- as.numeric(format(size,digits = 3))
       total <- sampleSizeData[data$disease,input$drugList3]
       
