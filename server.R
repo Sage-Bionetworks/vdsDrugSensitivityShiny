@@ -209,14 +209,14 @@ shinyServer(function(input, output,session) {
       
       # note how size is automatically scaled and added as hover text
       
-      size <- nthroot(data$freqEvent, 2)
+      size <- normalize.vector((data$freqEvents)^2)
       size <- as.numeric(format(size,digits = 3))
-      total <- totalDf[data$disease,]
+      total <- sampleSizeData[data$disease,input$drugList3]
       
       plot_ly(data, x = effect, y = freqCounts,hoverinfo="text",
               text = paste("Molecular Trait: ",genes,
                            "</br>Feature Stability: ", freqCounts,
-                           "</br>Effect Magnitude: ", format(effect,digits = 3),
+                           "</br>Effect Magnitude: ", effect,
                            "</br>Disease: ", disease, 
                            "</br>Drug: ", drug,
                            "</br>Event frequency: ", format(freqEvents*100,digits = 2),"% out of",total),
