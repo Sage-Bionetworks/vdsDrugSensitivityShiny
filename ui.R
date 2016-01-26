@@ -49,32 +49,38 @@ shinyUI(fluidPage(
       titlePanel("Drug Sensitivity"),
       
       # Sidebar with a slider input for the number of bins
-      sidebarLayout(
-        sidebarPanel(
-          span("Selected organ: ", style="font-size:14px;font-weight:700"),
-          textOutput("selectedOrgan"),
-          br(),
-          selectInput("drugList3", "Choose a drug:",
-                      choices = drugs,selectize=T),
-          span("Selected area: ", style="font-size:14px;font-weight:700"),
-          textOutput("selectedArea"),
-          br(),
-          selectInput("otherDiseaseList", "Compare with other area:",
-                      selectize=T,multiple=T,
-                      choices = diseases,selected="BRCA"),
-          checkboxInput('show_dt', 'Show data values', value = FALSE),
-          
-          conditionalPanel("input.show_dt",
-                           checkboxGroupInput('show_vars', 'Columns to show:',
-                               showtable, selected = showtable)),
-           sliderInput("thresholdEM","Choose a threshold Effect Magnitude:",value=-1,
-                       min = 0,max=0.02,step=0.001)
+      fluidRow(
+        column(4,
+               span("Selected organ: ", style="font-size:14px;font-weight:700"),
+               textOutput("selectedOrgan"),
+               br(),
+               selectInput("drugList3", "Choose a drug:",
+                           choices = drugs,selectize=T),
+               span("Selected area: ", style="font-size:14px;font-weight:700"),
+               textOutput("selectedArea"),
+               br(),
+               selectInput("otherDiseaseList", "Compare with other area:",
+                           selectize=T,multiple=T,
+                           choices = diseases),
+               sliderInput("thresholdEM","Choose a threshold Effect Magnitude:",value=-1,
+                           min = 0,max=0.02,step=0.001)
         ),
-        
         # Show a plot of the generated distribution
-        mainPanel(
-          conditionalPanel("input.show_dt", dataTableOutput('dsDataTable')),
-          conditionalPanel("!input.show_dt",plotlyOutput("dsPlot"))
+        column(8,
+               plotlyOutput("dsPlot")
+        )
+      ),
+      
+      br(),
+      br(),
+      br(),
+      fluidRow(
+        column(4,
+               checkboxGroupInput('show_vars', 'Columns to show:',
+                                  showtable, selected = showtable)
+        ),
+        column(8,
+               dataTableOutput('dsDataTable')
         )
       )
     )# End Model 2 Tab Panel
