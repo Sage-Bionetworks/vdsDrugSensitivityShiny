@@ -228,24 +228,46 @@ shinyServer(function(input, output,session) {
       
   })
   
+  changeColor <- reactiveValues(data = FALSE)
+  observeEvent(input$changeColorButton,{
+    changeColor$data <- TRUE
+  })
+  
+  observeEvent(input$clearButton,{
+    changeColor$data <- FALSE
+  })
+  
   # Model 2 table
   output$dsDataTable = renderDataTable({
     withProgress(message = 'Calculation in progress',
                  detail = 'This may take a while...',  value = 0,{
                    incProgress(session= session)
       data <- top20Data()
-      show.column <- input$show_vars
-      
+      #show.column <- input$show_vars
+      show.column <- showtable
       #Filter by freqCounts and freqEvents
       #filtered = diseaseArea[diseaseArea$freqCounts > 0.05,]
       #filtered = filtered[filtered$freqEvents > 0.01,]
+      if(changeColor$data){
+        options = list(
+          rowCallback = JS(
+            "function(row, data) {",
+            "if(parseFloat(data[2]) > 0){",
+            "$('td', row).css({'background-color': '#ffcccc'});",
+            "}else{",
+            "$('td', row).css({'background-color': '#b3e6ff'});",
+            "}",
+            "}"),
+          searching = TRUE
+        )
+      }else{
+        options = list(searching = TRUE)
+      }
       datatable(
         data[,show.column],
         rownames = FALSE,
         filter = 'top',
-        options = list(
-          searching = TRUE
-        )
+        options = options
       )
     })
   })
