@@ -5,6 +5,6 @@ library(DT)
 library(ppls)
 synapseLogin()
 
-# drugData <- synGet("syn5599746")
-# load(drugData@filePath)
-load('drug.RData')
+drugData <- synGet("syn5599746")
+load(drugData@filePath)
+

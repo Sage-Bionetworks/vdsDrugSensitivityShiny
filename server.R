@@ -237,6 +237,17 @@ shinyServer(function(input, output,session) {
     changeColor$data <- FALSE
   })
   
+  output$colorLegend <- renderUI({
+    if(changeColor$data){
+      list(
+        div("+",class ="col-sm-2",style="margin-top:2%;margin-right:2%;border:1px solid #000;background-color:#ffcccc;text-align:center"),
+        div("-",class ="col-sm-2",style="margin-top:2%;margin-right:2%;border:1px solid #000;background-color:#b3e6ff;text-align:center")
+      )
+    }else{
+      div()
+    }
+  })
+  
   # Model 2 table
   output$dsDataTable = renderDataTable({
     withProgress(message = 'Calculation in progress',
