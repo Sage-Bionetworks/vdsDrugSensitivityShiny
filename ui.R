@@ -78,8 +78,10 @@ shinyUI(fluidPage(
         column(4,
 #                checkboxGroupInput('show_vars', 'Columns to show:',
 #                                   showtable, selected = showtable),
-               actionButton('changeColorButton', 'Highlight effect'),
-               actionButton('clearButton', 'Clear')
+               actionButton('changeColorButton', 'Highlight Effect Magnitude'),
+               actionButton('clearButton', 'Clear'),
+               br(),
+               uiOutput('colorLegend')
         ),
         column(8,
                dataTableOutput('dsDataTable')
